@@ -1,191 +1,160 @@
-# The Road To DevOps
+# 开发运营之路（The Road To DevOps）
 
-## devops-main
+## 背景
 
-### 系统配置
+随着微服务的热度不断上升，开发团队都希望有一个**高性价比**和**更现代**的自动化编译和部署的工具或系统来协助众多微服务模块的开发。
 
-1.openEuler-20.03-LTS-SP3
+## 目标
 
-### 网络配置
+基于私有搭建Gitlab，完成DevOps全流程。
 
-1.可获得$IFNAME -> enp3s0
+## 名词解析
 
-```shell
-nmcli connection show
+1. springblade ：一个微服务应用项目
+
+## 技术栈
+
+<table>
+  <tr>
+    <td>
+      <img src=".\icon\tech-stack\gitlab.svg" alt="img" style="zoom:50%;" />
+    </td>
+  </tr>
+  <tr>
+    <td align=center>
+      GitLab
+    </td>
+  </tr>
+</table>
+
+## DevOps流程
+
+需求分析 -> 新建分支 -> 代码编写 -> 代码请求合并 -> 代码审查 -> 代码合并 -> 代码编译 -> 代码检查 -> 单元测试 -> 检查结果上传 -> 制品生成 -> 制品上传 -> 制品部署脚本更新 ->制品部署 -> 自动化测试
+
+### 流水线
+
+```mermaid
+flowchart 
+
+subgraph GitLab
+
+  subgraph springblade
+    Build --> Scan
+    Scan --> Package
+    Package --> Upload
+    Upload --> Predeploy
+    Predeploy --> Deploy
+    Deploy --> Downstream
+
+
+  end
+
+  subgraph K8s Agents Springblade
+
+    Test
+
+  end
+
+end
+
+Downstream --> Test
+
 ```
 
-2.连接网络设备
+#### 流水线详情
 
-```shell
-nmcli device connect "$IFNAME"
+
+## 基于私有搭建Gitlab的DevOps实践
+
+### 架构图
+
+```mermaid
+flowchart
+
+subgraph GitLab
+
+    cluster-management[[cluster-management]]
+    springblade[[springblade]]
+    K8s-Agents-Springblade[[K8s Agents Springblade]]
+
+end
+
+subgraph autok3s
+
+  subgraph K3s
+
+      subgraph GitLab-Agent
+
+        GitLab-Agent-Runner[(GitLab-Agent-Runner)]
+        GitLab-Agent-APP[(GitLab-Agent-APP)]
+      end
+      subgraph GitLabRunnerGroup
+          GitLabRunner-01[(GitLabRunner-01)]
+          GitLabRunner-02[(GitLabRunner-02)]
+          ...
+        end
+      subgraph springblade-app
+
+      end
+
+  end
+
+end
+
+GitLabRunner[(GitLabRunner)]
+cluster-management -- 关联 --o GitLab-Agent-Runner-- 受cluster-management委托创建 --->GitLabRunnerGroup
+springblade -- 借助GitLabRunner执行流水线 --- GitLabRunnerGroup
+springblade -- 委托GitlabRunner触发制品配置更新 -->K8s-Agents-Springblade -- 关联 ---o GitLab-Agent-APP --受K8s Agents Springblade委托创建app环境--> springblade-app
+GitLabRunner -- 发出创建GitLabRunnerGroup的指令 -->GitLab-Agent-Runner
+
+
+subgraph Nexus
+  Nexus-Maven[(Maven)]
+  Nexus-Npm[(Npm)]
+  Nexus-Raw[(Raw)]
+end
+subgraph Harbor
+  Harbor-Library[(library)]
+  Harbor-Proxy-Cache[(proxy_cache)]
+  Harbor-springblade[(springblade)]
+end
+subgraph Minio
+  Minio-RunnerCache[(buckets.gitlab-runner)]
+end
+SonarQube[(SonarQube)]
+
+
+GitLab --用于搭建K3S上的GitLab-Agent-Runner --- GitLabRunner
+
+
+
+GitLabRunnerGroup --用于流水线执行代码检查--- SonarQube
+GitLabRunnerGroup --用于流水线中使用缓存--- Minio
+GitLabRunnerGroup --用于加速流水线应用构建--- Nexus
+GitLabRunnerGroup --用于加速GitLabRunner的构建--- Harbor
+GitLabRunnerGroup --用于上传镜像--- Harbor
+
+autok3s --- 用于加速服务的搭建 --o Harbor
 ```
 
-3.配置静态IP -> 192.168.2.28
+### 架构搭建
 
-以enp3s0网络接口进行静态网络设置为例，通过在root权限下修改ifcfg文件实现，在/etc/sysconfig/network-scripts/目录中生成名为ifcfg-enp3s0的文件中，修改参数配置，示例如下：
+#### 搭建步骤
 
-```shell
-vi /etc/sysconfig/network-scripts/ifcfg-enp0s3
-```
+1. 创建基础服务
+    1.1. 创建Harbor
+    1.2. 创建Minio
+    1.3. 创建Nexus
+    1.4. 创建SonarQube
+2. 搭建GitLab
+3. 搭建GitLab Runner并关联到GitLab
+4. 搭建autoK3s，创建K3s实例
+5. 在GitLab上创建项目cluster-management,并在K3s实例上创建GitLab-Agent-Runner
+6. 执行cluster-management流水线，创建GitLabRunnerGroup
+7. GitLab上创建项目微服务应用springblade
+8. GitLab上创建项目微服务环境代理项目K8s-Agents-Springblade，并在K3s实例上创建GitLab-Agent-APP
+9. 执行springblade流水线（生成新的微服务镜像并且更新新的环境配置到K8s-Agents-Springblade）
 
-```porperties
-TYPE=Ethernet
-PROXY_METHOD=none
-BROWSER_ONLY=no
-BOOTPROTO=none
-IPADDR=192.168.2.28
-PREFIX=24
-GATEWAY=192.168.2.1
-DNS1=8.8.8.8
-DNS2=114.114.114.114
-DEFROUTE=yes
-IPV4_FAILURE_FATAL=no
-IPV6INIT=yes
-IPV6_AUTOCONF=yes
-IPV6_DEFROUTE=yes
-IPV6_FAILURE_FATAL=no
-IPV6_ADDR_GEN_MODE=stable-privacy
-NAME=enp0s3static
-UUID=08c3a30e-c5e2-4d7b-831f-26c3cdc29293
-DEVICE=enp0s3
-ONBOOT=yes
-```
+#### 架构搭建详情
 
-4.reboot
-
-```shell
-reboot
-```
-
-5.查看配置的连接详情 -> enp0s3static
-
-```shell
-nmcli -p con show enp0s3static
-```
-
-### 管理软件包,使用DNF
-
-1.检查更新
-
-```shell
-dnf check-update
-```
-
-2.更新所有的包和它们的依赖
-
-```shell
-dnf update
-```
-
-### Docker & Docker Compose
-
-1.安装docker
-
-```shell
-dnf install docker
-```
-
-2.安装docker-compose
-
-```shell
-dnf install docker-compose
-```
-
-### Gitlab EE
-
-#### 准备
-
-1.准备docker工作目录：/usr/local/docker
-
-2.安装docker gitlab
-
-2.1 准备docker gitlab目录
-
-1. 工作目录:/usr/local/docker/gitlab
-2. 创建目录
-
-```shell
-mkdir /usr/local/docker/gitlab
-mkdir /usr/local/docker/gitlab/volume/
-mkdir /usr/local/docker/gitlab/volume/config
-mkdir /usr/local/docker/gitlab/volume/logs
-mkdir /usr/local/docker/gitlab/license/
-```
-
-2.2 配置ssl
-
-```shell
-mkdir /usr/local/docker/gitlab/volume/config/ssl
-cd /usr/local/docker/gitlab/volume/config/ssl
-openssl genrsa -des3 -out 192.168.2.28.key 2048
-# pass phrase
-#783a544f59d298255005a0f39c8bea52
-openssl req -new -key 192.168.2.28.key -out 192.168.2.28.csr
-#Country Name (2 letter code) [AU]:: CN
-#State or Province Name (full name) [Some-State]:
-#Locality Name (eg, city) []:
-#Organization Name (eg, company) [Internet Widgits Pty Ltd]:lastsunday
-#Organizational Unit Name (eg, section) []:
-#Common Name (e.g. server FQDN or YOUR name) []:192.168.2.28
-#Email Address []:
-#A challenge password []:c294bd40ad4956fefbef
-#An optional company name []:
-nano v3.ext #见下面的v3.ext内容
-openssl x509 -in 192.168.2.28.csr -out 192.168.2.28.crt -req -signkey 192.168.2.28.key -days 3650 -sha256 -extfile v3.ext
-#If the certificate.key file is password protected, NGINX will not ask for the password when you reconfigure GitLab. In that case, Omnibus GitLab will fail silently with no error messages. To remove the password from the key, run:
-cp 192.168.2.28.key 192.168.2.28.key.bak
-openssl rsa -in 192.168.2.28.key.bak -out 192.168.2.28.key
-```
-
-***v3.ext***
-
-```txt
-authorityKeyIdentifier=keyid,issuer
-basicConstraints=CA:FALSE
-keyUsage = digitalSignature, nonRepudiation, keyEncipherment, dataEncipherment
-subjectAltName = IP:192.168.2.28
-```
-
-2.3 安装gitlab
-
-```shell
-cd /usr/local/docker/gitlab
-nano docker-compose.yml
-docker-compose up
-```
-
-***docker-compose.yml***
-
-```yml
-gitlab:
-  image: 'gitlab/gitlab-ee:14.9.2-ee.0'
-  restart: always
-  hostname: '192.168.2.28'
-  environment:
-    GITLAB_OMNIBUS_CONFIG: |
-      external_url 'https://192.168.2.28:8081'
-      nginx['redirect_http_to_https_port'] = 8081
-      puma['exporter_enabled'] = true
-      puma['exporter_port'] = 2443
-      gitlab_rails['gitlab_shell_ssh_port'] = 2022
-      nginx['enable'] = true
-      registry_external_url 'https://192.168.2.28:4567'
-      registry_nginx['redirect_http_to_https'] = true
-  ports:
-    - '8081:8081'
-    - '2443:2443'
-    - '2022:22'
-    - '4567:4567'
-  volumes:
-    - './volume/config:/etc/gitlab'
-    - './volume/logs:/var/log/gitlab'
-    - './volume/data:/var/opt/gitlab'
-```
-
-2.4 登录gitlab
-
-重新启动GitLab，登录管理员账户root（密码见：/usr/local/docker/gitlab/volume/config/initial_root_password）
-
-```shell
-cat /usr/local/docker/gitlab/volume/config/initial_root_password
-```
+1. 创建Harbor
