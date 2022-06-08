@@ -26,7 +26,7 @@
 <table>
   <tr>
     <td align=center>
-      <img width="200em" src=".\resource\icon\tech-stack\gitlab.svg" alt="img" />
+      <img width="200em" src="./resource/icon/tech-stack/gitlab.svg" alt="img" />
     </td>
   </tr>
   <tr>
@@ -39,13 +39,13 @@
 <table>
   <tr>
     <td align=center>
-      <img width="200em" src=".\resource\icon\tech-stack\nexus.png" alt="img" />
+      <img width="200em" src="./resource/icon/tech-stack/nexus.png" alt="img" />
     </td>
     <td align=center style="background-color:#247bae">
-      <img width="200em" src=".\resource\icon\tech-stack\harbor.svg" alt="img" />
+      <img width="200em" src="./resource/icon/tech-stack/harbor.svg" alt="img" />
     </td>
     <td align=center>
-      <img width="200em" src=".\resource\icon\tech-stack\minio.svg" alt="img"/>
+      <img width="200em" src="./resource/icon/tech-stack/minio.svg" alt="img"/>
     </td>
   </tr>
   <tr>
@@ -64,13 +64,13 @@
 <table>
   <tr>
   	<td align=center>
-      <img width="200em" src=".\resource\icon\tech-stack\docker.svg" alt="img" />
+      <img width="200em" src="./resource/icon/tech-stack/docker.svg" alt="img" />
     </td>
     <td align=center>
-      <img width="200em" src=".\resource\icon\tech-stack\k3s.svg" alt="img" />
+      <img width="200em" src="./resource/icon/tech-stack/k3s.svg" alt="img" />
     </td>
     <td align=center >
-      <img width="200em" src=".\resource\icon\tech-stack\autok3s.svg" alt="img" />
+      <img width="200em" src="./resource/icon/tech-stack/autok3s.svg" alt="img" />
     </td>
   </tr>
   <tr>
@@ -89,10 +89,10 @@
 <table>
   <tr>
   	<td align=center>
-      <img width="200em" src=".\resource\icon\tech-stack\sonarqube.svg" alt="img" />
+      <img width="200em" src="./resource/icon/tech-stack/sonarqube.svg" alt="img" />
     </td>
     <td align=center>
-      <img width="200em" src=".\resource\icon\tech-stack\dependency-check.svg" alt="img" />
+      <img width="200em" src="./resource/icon/tech-stack/dependency-check.svg" alt="img" />
     </td>
   </tr>
   <tr>
@@ -143,7 +143,7 @@ Downstream --> Test
 
 执行全景图
 
-![cicd](.\resource\cicd.png)
+![cicd](./resource/cicd.png)
 
 #### Build
 
@@ -219,7 +219,7 @@ Downstream --> Test
 
 #### K8s Agents Springblade：TEST
 
-![cicd-agent-test.png](.\resource\cicd-agent-test.png)
+![cicd-agent-test.png](./resource/cicd-agent-test.png)
 
 1. spring-blade:image:unpack： 拆解上一流水线传递的参数
 2. spring-blade:image:update： 借助kustomize更新配置文件差异信息
@@ -231,37 +231,37 @@ Downstream --> Test
 
 #### 检测效果
 
-![代码检测主页面](.\resource\sonar-main.png)
+![代码检测主页面](./resource/sonar-main.png)
 
-![后端代码检测概况](.\resource\sonar-be-overall-code.png)
+![后端代码检测概况](./resource/sonar-be-overall-code.png)
 
-![依赖漏洞检测](.\resource\sonar-be-dependency-check.png)
+![依赖漏洞检测](./resource/sonar-be-dependency-check.png)
 
-![前端代码检测](.\resource\sonar-fe.png)
+![前端代码检测](./resource/sonar-fe.png)
 
 #### 后端jar版本化效果
 
-![后端jar版本化](.\resource\nexus-be-release.png)
+![后端jar版本化](./resource/nexus-be-release.png)
 
 #### CI缓存
 
-![minio-ci-cache](.\resource\minio-ci-cache.png)
+![minio-ci-cache](./resource/minio-ci-cache.png)
 
 #### 镜像仓库效果
 
-![harbor-springblade](.\resource\harbor-springblade.png)
+![harbor-springblade](./resource/harbor-springblade.png)
 
 #### 微服务部署效果
 
-![k3s-app](.\resource\k3s-app.png)
+![k3s-app](./resource/k3s-app.png)
 
 #### 应用效果
 
-![k3s-app-nacos](.\resource\k3s-app-nacos.png)
+![k3s-app-nacos](./resource/k3s-app-nacos.png)
 
-![k3s-app-sentinel](.\resource\k3s-app-sentinel.png)
+![k3s-app-sentinel](./resource/k3s-app-sentinel.png)
 
-![k3s-app-saber](.\resource\k3s-app-saber.png)
+![k3s-app-saber](./resource/k3s-app-saber.png)
 
 ## 基于私有搭建Gitlab的DevOps实践
 
@@ -1471,9 +1471,9 @@ kubectl create secret generic s3access \
 
 1. 在项目中新建agent，注意记录token，下面步骤需要使用
 
-   ![gitlab-agent-create](.\resource\gitlab-agent-create.png)
+   ![gitlab-agent-create](./resource/gitlab-agent-create.png)
 
-   ![gitlab-agent-create-token](.\resource\gitlab-agent-create-token.png)
+   ![gitlab-agent-create-token](./resource/gitlab-agent-create-token.png)
 
 2. 打开集群的kubectl Shell
 
