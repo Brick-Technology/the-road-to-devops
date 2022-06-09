@@ -113,6 +113,14 @@
 
 > 基于springblade基础上进行流水线的实践
 
+#### 相关项目
+
+https://github.com/Brick-Technology/cluster-management
+
+https://github.com/Brick-Technology/springblade
+
+https://github.com/Brick-Technology/k8s-agents-springblade
+
 ```mermaid
 flowchart 
 
